@@ -1,0 +1,490 @@
+<!-- Admin Panel -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - BarbAgende</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white antialiased">
+    <div class="container mx-auto p-4">
+        <header class="text-center my-8">
+            <h1 class="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">Painel de Controle - BarbAgende</h1>
+            <p class="text-gray-400 mt-2">Gerencie seus agendamentos, clientes e horários.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Sidebar/Navigation -->
+            <aside class="md:col-span-1">
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                    <h2 class="text-xl font-semibold mb-4">Menu</h2>
+                    <nav class="space-y-2">
+                        <a href="#" id="nav-appointments" class="flex items-center p-3 rounded-lg bg-indigo-600 text-white font-semibold">
+                            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Agendamentos
+                        </a>
+                        <a href="#" id="nav-clients" class="flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                             <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            Clientes
+                        </a>
+                        <a href="#" id="nav-services" class="flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                            Serviços
+                        </a>
+                        <a href="#" id="nav-settings" class="flex items-center p-3 rounded-lg hover:bg-gray-700 transition-colors">
+                            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Configurações
+                        </a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main id="main-content" class="md:col-span-2">
+                <!-- Content will be loaded here -->
+            </main>
+        </div>
+    </div>
+
+    <div id="modal-placeholder"></div>
+
+    <script type="module">
+        // --- MOCK DATA (simulando dados de um banco de dados) ---
+        const data = {
+            appointments: [
+                { id: 1, clientName: 'Carlos Silva', service: 'Corte de Cabelo', date: '2025-09-25', time: '10:00', staff: 'João', status: 'Confirmado' },
+                { id: 2, clientName: 'Mariana Oliveira', service: 'Corte + Barba', date: '2025-09-25', time: '11:00', staff: 'Carlos', status: 'Confirmado' },
+                { id: 3, clientName: 'Pedro Martins', service: 'Barba', date: '2025-09-25', time: '14:30', staff: 'João', status: 'Pendente' },
+                { id: 4, clientName: 'Ana Costa', service: 'Selagem', date: '2025-09-26', time: '09:00', staff: 'Carlos', status: 'Cancelado' },
+                 { id: 5, clientName: 'Lucas Almeida', service: 'Corte de Cabelo', date: '2025-09-26', time: '10:00', staff: 'João', status: 'Confirmado' },
+            ],
+            clients: [
+                { id: 1, name: 'Carlos Silva', phone: '(11) 99999-1111', totalAppointments: 5, lastVisit: '2025-08-15' },
+                { id: 2, name: 'Mariana Oliveira', phone: '(21) 98888-2222', totalAppointments: 2, lastVisit: '2025-09-01' },
+                { id: 3, name: 'Pedro Martins', phone: '(31) 97777-3333', totalAppointments: 8, lastVisit: '2025-09-10' },
+                { id: 4, name: 'Ana Costa', phone: '(41) 96666-4444', totalAppointments: 1, lastVisit: '2025-07-20' },
+                { id: 5, name: 'Lucas Almeida', phone: '(51) 95555-5555', totalAppointments: 3, lastVisit: '2025-08-30' },
+            ],
+            services: [
+                { id: 1, name: "Corte de Cabelo", duration: 45, price: 50.00, active: true },
+                { id: 2, name: "Barba", duration: 30, price: 35.00, active: true },
+                { id: 3, name: "Corte + Barba", duration: 75, price: 80.00, active: true },
+                { id: 4, name: "Selagem", duration: 90, price: 120.00, active: false },
+            ],
+            settings: {
+                establishmentName: "Barbearia Navalha de Ouro",
+                address: "Rua das Palmeiras, 123 - Centro",
+                timezone: "America/Sao_Paulo",
+                businessHours: [
+                    { day: 'Segunda', active: true, start: '09:00', end: '18:00' },
+                    { day: 'Terça', active: true, start: '09:00', end: '18:00' },
+                    { day: 'Quarta', active: true, start: '09:00', end: '18:00' },
+                    { day: 'Quinta', active: true, start: '09:00', end: '18:00' },
+                    { day: 'Sexta', active: true, start: '09:00', end: '20:00' },
+                    { day: 'Sábado', active: true, start: '08:00', end: '16:00' },
+                    { day: 'Domingo', active: false, start: '', end: '' },
+                ]
+            }
+        };
+
+        // --- DOM Elements ---
+        const mainContent = document.getElementById('main-content');
+        const navLinks = document.querySelectorAll('aside nav a');
+        const modalPlaceholder = document.getElementById('modal-placeholder');
+
+        // --- MODAL FUNCTIONS ---
+        function openServiceModal(serviceId) {
+            const service = serviceId ? data.services.find(s => s.id === serviceId) : null;
+            const modalTitle = service ? 'Editar Serviço' : 'Novo Serviço';
+            const serviceName = service ? service.name : '';
+            const serviceDuration = service ? service.duration : '';
+            const servicePrice = service ? service.price : '';
+
+            modalPlaceholder.innerHTML = `
+                <div id="service-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 w-full max-w-md">
+                        <h2 class="text-2xl font-semibold mb-6">${modalTitle}</h2>
+                        <form id="service-form">
+                            <input type="hidden" id="service-id" value="${serviceId || ''}">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="service-name" class="block text-sm font-medium text-gray-400">Nome</label>
+                                    <input type="text" id="service-name" value="${serviceName}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                                <div>
+                                    <label for="service-duration" class="block text-sm font-medium text-gray-400">Duração (minutos)</label>
+                                    <input type="number" id="service-duration" value="${serviceDuration}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                                <div>
+                                    <label for="service-price" class="block text-sm font-medium text-gray-400">Preço (R$)</label>
+                                    <input type="number" step="0.01" id="service-price" value="${servicePrice}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                            </div>
+                            <div class="flex justify-end mt-8 space-x-4">
+                                <button type="button" id="cancel-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">Cancelar</button>
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Salvar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('service-form').addEventListener('submit', saveService);
+            document.getElementById('cancel-btn').addEventListener('click', closeServiceModal);
+        }
+
+        function closeServiceModal() {
+            modalPlaceholder.innerHTML = '';
+        }
+
+        function saveService(event) {
+            event.preventDefault();
+            const serviceId = document.getElementById('service-id').value;
+            const serviceName = document.getElementById('service-name').value;
+            const serviceDuration = parseInt(document.getElementById('service-duration').value);
+            const servicePrice = parseFloat(document.getElementById('service-price').value);
+
+            if (serviceId) {
+                // Edit
+                const serviceIndex = data.services.findIndex(s => s.id === parseInt(serviceId));
+                if (serviceIndex > -1) {
+                    data.services[serviceIndex] = { ...data.services[serviceIndex], name: serviceName, duration: serviceDuration, price: servicePrice };
+                }
+            } else {
+                // New
+                const newId = data.services.length > 0 ? Math.max(...data.services.map(s => s.id)) + 1 : 1;
+                data.services.push({
+                    id: newId,
+                    name: serviceName,
+                    duration: serviceDuration,
+                    price: servicePrice,
+                    active: true
+                });
+            }
+            closeServiceModal();
+            renderServices();
+        }
+
+        function openAppointmentModal(appointmentId) {
+            const appointment = appointmentId ? data.appointments.find(a => a.id === appointmentId) : null;
+            const modalTitle = appointment ? 'Editar Agendamento' : 'Novo Agendamento';
+            const clientName = appointment ? appointment.clientName : '';
+            const service = appointment ? appointment.service : '';
+            const date = appointment ? appointment.date : '';
+            const time = appointment ? appointment.time : '';
+            const staff = appointment ? appointment.staff : '';
+
+            modalPlaceholder.innerHTML = `
+                <div id="appointment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 w-full max-w-md">
+                        <h2 class="text-2xl font-semibold mb-6">${modalTitle}</h2>
+                        <form id="appointment-form">
+                            <input type="hidden" id="appointment-id" value="${appointmentId || ''}">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="client-name" class="block text-sm font-medium text-gray-400">Nome do Cliente</label>
+                                    <input type="text" id="client-name" value="${clientName}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                                <div>
+                                    <label for="service" class="block text-sm font-medium text-gray-400">Serviço</label>
+                                    <select id="service" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                        ${data.services.map(s => `<option value="${s.name}" ${service === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="date" class="block text-sm font-medium text-gray-400">Data</label>
+                                    <input type="date" id="date" value="${date}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                                <div>
+                                    <label for="time" class="block text-sm font-medium text-gray-400">Horário</label>
+                                    <input type="time" id="time" value="${time}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                                <div>
+                                    <label for="staff" class="block text-sm font-medium text-gray-400">Profissional</label>
+                                    <input type="text" id="staff" value="${staff}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                </div>
+                            </div>
+                            <div class="flex justify-end mt-8 space-x-4">
+                                <button type="button" id="cancel-appointment-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">Cancelar</button>
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Salvar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('appointment-form').addEventListener('submit', saveAppointment);
+            document.getElementById('cancel-appointment-btn').addEventListener('click', closeAppointmentModal);
+        }
+
+        function closeAppointmentModal() {
+            modalPlaceholder.innerHTML = '';
+        }
+
+        function saveAppointment(event) {
+            event.preventDefault();
+            const appointmentId = document.getElementById('appointment-id').value;
+            const clientName = document.getElementById('client-name').value;
+            const service = document.getElementById('service').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const staff = document.getElementById('staff').value;
+
+            if (appointmentId) {
+                // Edit
+                const appointmentIndex = data.appointments.findIndex(a => a.id === parseInt(appointmentId));
+                if (appointmentIndex > -1) {
+                    data.appointments[appointmentIndex] = { ...data.appointments[appointmentIndex], clientName, service, date, time, staff };
+                }
+            } else {
+                // New
+                const newId = data.appointments.length > 0 ? Math.max(...data.appointments.map(a => a.id)) + 1 : 1;
+                data.appointments.push({
+                    id: newId,
+                    clientName,
+                    service,
+                    date,
+                    time,
+                    staff,
+                    status: 'Confirmado'
+                });
+            }
+            closeAppointmentModal();
+            renderAppointments();
+        }
+
+        function cancelAppointment(appointmentId) {
+            const appointmentIndex = data.appointments.findIndex(a => a.id === appointmentId);
+            if (appointmentIndex > -1) {
+                data.appointments[appointmentIndex].status = 'Cancelado';
+                renderAppointments();
+            }
+        }
+        
+        // --- RENDER FUNCTIONS ---
+        function renderAppointments() {
+            mainContent.innerHTML = `
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">Agendamentos</h2>
+                        <button id="new-appointment-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">Novo Agendamento</button>
+                    </div>
+                    <div class="mb-4">
+                        <input type="date" class="bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-gray-600">
+                                    <th class="p-3">Cliente</th>
+                                    <th class="p-3">Serviço</th>
+                                    <th class="p-3">Horário</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.appointments.map(app => `
+                                    <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                                        <td class="p-3 font-semibold">${app.clientName}</td>
+                                        <td class="p-3 text-gray-300">${app.service}</td>
+                                        <td class="p-3 text-gray-300">${app.time}</td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-1 text-xs rounded-full ${getStatusClass(app.status)}">${app.status}</span>
+                                        </td>
+                                        <td class="p-3">
+                                            <button class="edit-appointment-btn text-indigo-400 hover:text-indigo-300 mr-2" data-appointment-id="${app.id}">Editar</button>
+                                            <button class="cancel-appointment-btn text-red-400 hover:text-red-300" data-appointment-id="${app.id}">Cancelar</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('new-appointment-btn').addEventListener('click', () => openAppointmentModal());
+            document.querySelectorAll('.edit-appointment-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const appointmentId = parseInt(e.currentTarget.dataset.appointmentId);
+                    openAppointmentModal(appointmentId);
+                });
+            });
+            document.querySelectorAll('.cancel-appointment-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const appointmentId = parseInt(e.currentTarget.dataset.appointmentId);
+                    cancelAppointment(appointmentId);
+                });
+            });
+        }
+        
+        
+        function renderClients() {
+             mainContent.innerHTML = `
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">Clientes</h2>
+                        <input type="text" placeholder="Buscar cliente..." class="bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 w-1/3">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-gray-600">
+                                    <th class="p-3">Nome</th>
+                                    <th class="p-3">Telefone</th>
+                                    <th class="p-3">Agendamentos</th>
+                                    <th class="p-3">Última Visita</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.clients.map(client => `
+                                    <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                                        <td class="p-3 font-semibold">${client.name}</td>
+                                        <td class="p-3 text-gray-300">${client.phone}</td>
+                                        <td class="p-3 text-gray-300">${client.totalAppointments}</td>
+                                        <td class="p-3 text-gray-300">${client.lastVisit}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderServices() {
+            mainContent.innerHTML = `
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">Serviços</h2>
+                        <button id="new-service-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">Novo Serviço</button>
+                    </div>
+                    <div class="space-y-4">
+                        ${data.services.map(service => `
+                            <div class="bg-gray-700 p-4 rounded-lg flex justify-between items-center">
+                                <div>
+                                    <p class="font-semibold text-lg">${service.name}</p>
+                                    <p class="text-sm text-gray-400">${service.duration} min - R$${service.price.toFixed(2).replace('.',',')}</p>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                     <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" ${service.active ? 'checked' : ''} class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                        <span class="ml-3 text-sm font-medium text-gray-300">Ativo</span>
+                                    </label>
+                                    <button class="edit-service-btn text-indigo-400 hover:text-indigo-300" data-service-id="${service.id}">Editar</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('new-service-btn').addEventListener('click', () => openServiceModal());
+            document.querySelectorAll('.edit-service-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const serviceId = parseInt(e.currentTarget.dataset.serviceId);
+                    openServiceModal(serviceId);
+                });
+            });
+        }
+
+        function renderSettings() {
+            const s = data.settings;
+             mainContent.innerHTML = `
+                <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                     <h2 class="text-2xl font-semibold mb-6">Configurações</h2>
+                     <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-200 mb-2">Informações do Estabelecimento</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="establishment-name" class="block text-sm font-medium text-gray-400">Nome</label>
+                                    <input type="text" id="establishment-name" value="${s.establishmentName}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label for="establishment-address" class="block text-sm font-medium text-gray-400">Endereço</label>
+                                                                         <input type="text" id="establishment-address" value="${s.address}" class="mt-1 w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500">                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-200 mb-2">Horário de Funcionamento</h3>
+                            <div class="space-y-3">
+                                ${s.businessHours.map(bh => `
+                                    <div class="grid grid-cols-4 items-center gap-4 p-2 bg-gray-700/50 rounded-lg">
+                                        <div class="col-span-1">
+                                            <label class="flex items-center">
+                                                <input type="checkbox" ${bh.active ? 'checked' : ''} class="h-4 w-4 rounded bg-gray-600 border-gray-500 text-indigo-600 focus:ring-indigo-500">
+                                                <span class="ml-2 font-semibold">${bh.day}</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-span-3 grid grid-cols-2 gap-2">
+                                            <input type="time" value="${bh.start}" ${!bh.active ? 'disabled' : ''} class="bg-gray-700 border-gray-600 rounded-lg p-1 text-sm w-full disabled:opacity-50">
+                                            <input type="time" value="${bh.end}" ${!bh.active ? 'disabled' : ''} class="bg-gray-700 border-gray-600 rounded-lg p-1 text-sm w-full disabled:opacity-50">
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Salvar Alterações</button>
+                        </div>
+                     </div>
+                </div>
+             `;
+        }
+
+        // --- Helper Functions ---
+        function getStatusClass(status) {
+            switch (status) {
+                case 'Confirmado': return 'bg-green-500/20 text-green-300';
+                case 'Pendente': return 'bg-yellow-500/20 text-yellow-300';
+                case 'Cancelado': return 'bg-red-500/20 text-red-300';
+                default: return 'bg-gray-500/20 text-gray-300';
+            }
+        }
+
+        function handleNavigation(event) {
+            event.preventDefault();
+            const targetId = event.currentTarget.id;
+
+            // Update active link style
+            navLinks.forEach(link => {
+                link.classList.remove('bg-indigo-600', 'font-semibold');
+                link.classList.add('hover:bg-gray-700');
+            });
+            event.currentTarget.classList.add('bg-indigo-600', 'font-semibold');
+            event.currentTarget.classList.remove('hover:bg-gray-700');
+
+            // Render content based on ID
+            switch (targetId) {
+                case 'nav-appointments':
+                    renderAppointments();
+                    break;
+                case 'nav-clients':
+                    renderClients();
+                    break;
+                case 'nav-services':
+                    renderServices();
+                    break;
+                case 'nav-settings':
+                    renderSettings();
+                    break;
+            }
+        }
+        
+        // --- Initialization ---
+        navLinks.forEach(link => link.addEventListener('click', handleNavigation));
+        renderAppointments(); // Render the default view on page load
+    </script>
+</body>
+</html>

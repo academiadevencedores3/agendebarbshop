@@ -1,0 +1,519 @@
+<!-- BarbAgende -->
+<!-- BarbAgende -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarbAgende - Agendamento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .step-indicator {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white antialiased">
+    <div class="container mx-auto p-4 max-w-2xl">
+        <!-- Header -->
+        <header class="text-center my-8">
+            <h1 class="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">BarbAgende</h1>
+            <p class="text-gray-400 mt-2">Agendamento rápido para sua barbearia preferida</p>
+        </header>
+
+        <!-- Establishment Info -->
+        <div class="bg-gray-800 p-6 rounded-2xl mb-8 border border-gray-700">
+            <h2 id="establishment-name" class="text-2xl font-semibold text-white">Barbearia Navalha de Ouro</h2>
+            <p id="establishment-address" class="text-gray-400 mt-1">Rua das Palmeiras, 123 - Centro</p>
+        </div>
+
+        <!-- Stepper -->
+        <div class="flex items-center justify-between mb-8 px-4">
+            <div class="flex flex-col items-center">
+                <div id="step-circle-1" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center border-2 border-indigo-500 bg-indigo-500 text-white font-bold">1</div>
+                <p id="step-label-1" class="text-xs mt-2 text-indigo-400">Serviço</p>
+            </div>
+            <div class="flex-1 h-0.5 bg-gray-700"></div>
+            <div class="flex flex-col items-center">
+                <div id="step-circle-2" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-600 bg-gray-800 text-gray-400 font-bold">2</div>
+                <p id="step-label-2" class="text-xs mt-2 text-gray-500">Horário</p>
+            </div>
+            <div class="flex-1 h-0.5 bg-gray-700"></div>
+            <div class="flex flex-col items-center">
+                <div id="step-circle-3" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-600 bg-gray-800 text-gray-400 font-bold">3</div>
+                <p id="step-label-3" class="text-xs mt-2 text-gray-500">Dados</p>
+            </div>
+             <div class="flex-1 h-0.5 bg-gray-700"></div>
+            <div class="flex flex-col items-center">
+                <div id="step-circle-4" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-600 bg-gray-800 text-gray-400 font-bold">4</div>
+                <p id="step-label-4" class="text-xs mt-2 text-gray-500">Confirmar</p>
+            </div>
+        </div>
+
+
+        <!-- Content Area -->
+        <main id="content-area" class="bg-gray-800 p-6 rounded-2xl border border-gray-700 min-h-[300px]">
+            <!-- Steps will be rendered here by JS -->
+        </main>
+
+        <!-- Navigation Buttons -->
+        <div id="nav-buttons" class="flex justify-between mt-8">
+            <button id="prev-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-colors hidden">Voltar</button>
+            <button id="next-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors ml-auto">Avançar</button>
+        </div>
+    </div>
+
+    <script type="module">
+        dayjs.extend(dayjs_plugin_utc);
+        dayjs.extend(dayjs_plugin_timezone);
+        dayjs.extend(dayjs_plugin_customParseFormat);
+
+        // --- MOCK DATA ---
+        const mockApi = {
+            establishment: {
+                name: "Barbearia Navalha de Ouro",
+                address: "Rua das Palmeiras, 123 - Centro",
+                slug: "barbearia-navalha-de-ouro",
+                timezone: "America/Sao_Paulo",
+                business_hours: [
+                    { day_of_week: 1, start_time: "09:00", end_time: "18:00", break_start: "13:00", break_end: "14:00" }, // Seg
+                    { day_of_week: 2, start_time: "09:00", end_time: "18:00", break_start: "13:00", break_end: "14:00" }, // Ter
+                    { day_of_week: 3, start_time: "09:00", end_time: "18:00", break_start: "13:00", break_end: "14:00" }, // Qua
+                    { day_of_week: 4, start_time: "09:00", end_time: "18:00", break_start: "13:00", break_end: "14:00" }, // Qui
+                    { day_of_week: 5, start_time: "09:00", end_time: "20:00", break_start: "13:00", break_end: "14:00" }, // Sex
+                    { day_of_week: 6, start_time: "08:00", end_time: "16:00", break_start: null, break_end: null },       // Sab
+                    { day_of_week: 0, start_time: null, end_time: null, break_start: null, break_end: null },        // Dom (Fechado)
+                ]
+            },
+            services: [
+                { id: 1, name: "Corte de Cabelo", duration: 45, price: 50.00 },
+                { id: 2, name: "Barba", duration: 30, price: 35.00 },
+                { id: 3, name: "Corte + Barba", duration: 75, price: 80.00 },
+                { id: 4, name: "Selagem", duration: 90, price: 120.00 },
+            ],
+            staff: [
+                { id: 1, name: "João" },
+                { id: 2, name: "Carlos" },
+            ],
+            appointments: [ // Existing appointments for a specific day
+                { staff_id: 1, start_time: "2025-09-22T10:00:00", end_time: "2025-09-22T10:45:00" },
+                { staff_id: 2, start_time: "2025-09-22T11:00:00", end_time: "2025-09-22T11:30:00" },
+                { staff_id: 1, start_time: "2025-09-22T14:00:00", end_time: "2025-09-22T15:30:00" },
+            ]
+        };
+
+        // --- STATE MANAGEMENT ---
+        const state = {
+            currentStep: 1,
+            selection: {
+                service: null,
+                staff: null,
+                date: null,
+                time: null,
+                client: {
+                    name: "",
+                    phone: ""
+                }
+            },
+            today: dayjs().tz(mockApi.establishment.timezone)
+        };
+
+        // --- DOM ELEMENTS ---
+        const contentArea = document.getElementById('content-area');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // --- RENDER FUNCTIONS ---
+
+        function renderStep() {
+            // Update stepper UI
+            for (let i = 1; i <= 4; i++) {
+                const circle = document.getElementById(`step-circle-${i}`);
+                const label = document.getElementById(`step-label-${i}`);
+                circle.classList.toggle('bg-indigo-500', i <= state.currentStep);
+                circle.classList.toggle('border-indigo-500', i <= state.currentStep);
+                circle.classList.toggle('text-white', i <= state.currentStep);
+
+                circle.classList.toggle('bg-gray-800', i > state.currentStep);
+                circle.classList.toggle('border-gray-600', i > state.currentStep);
+                circle.classList.toggle('text-gray-400', i > state.currentStep);
+                
+                label.classList.toggle('text-indigo-400', i === state.currentStep);
+                label.classList.toggle('text-gray-500', i !== state.currentStep);
+            }
+
+            // Render content for the current step
+            switch (state.currentStep) {
+                case 1:
+                    renderServiceSelection();
+                    prevBtn.classList.add('hidden');
+                    nextBtn.disabled = !state.selection.service;
+                    break;
+                case 2:
+                    renderDateTimeSelection();
+                    prevBtn.classList.remove('hidden');
+                    nextBtn.disabled = !state.selection.time;
+                    break;
+                case 3:
+                    renderClientForm();
+                    prevBtn.classList.remove('hidden');
+                    nextBtn.disabled = !state.selection.client.name || !state.selection.client.phone;
+                    break;
+                case 4:
+                    renderConfirmation();
+                    prevBtn.classList.remove('hidden');
+                    nextBtn.textContent = 'Confirmar Agendamento';
+                    break;
+            }
+        }
+
+        function renderServiceSelection() {
+            contentArea.innerHTML = `
+                <h3 class="text-xl font-semibold mb-4">Escolha um serviço</h3>
+                <div class="space-y-3">
+                    ${mockApi.services.map(service => `
+                        <div 
+                            class="service-item flex justify-between items-center p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${state.selection.service?.id === service.id ? 'border-indigo-500 bg-gray-700' : 'border-gray-600 hover:border-indigo-500'}"
+                            data-service-id="${service.id}"
+                        >
+                            <div>
+                                <p class="font-semibold">${service.name}</p>
+                                <p class="text-sm text-gray-400">${service.duration} min</p>
+                            </div>
+                            <p class="font-bold text-lg">R$${service.price.toFixed(2).replace('.', ',')}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            document.querySelectorAll('.service-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const serviceId = parseInt(item.dataset.serviceId);
+                    state.selection.service = mockApi.services.find(s => s.id === serviceId);
+                    renderStep(); // Re-render to show selection
+                });
+            });
+        }
+
+        function renderDateTimeSelection() {
+            contentArea.innerHTML = `
+                <h3 class="text-xl font-semibold mb-4">Escolha a data e o horário</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold mb-2">Profissional</h4>
+                        <select id="staff-select" class="w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500">
+                             <option value="">Qualquer um</option>
+                             ${mockApi.staff.map(s => `<option value="${s.id}" ${state.selection.staff?.id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                        </select>
+                        <h4 class="font-semibold mb-2 mt-4">Data</h4>
+                        <div id="calendar" class="bg-gray-700 p-3 rounded-lg"></div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">Horários disponíveis</h4>
+                        <div id="time-slots" class="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                           <p class="text-gray-400 col-span-3 text-sm">Selecione uma data para ver os horários.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const staffSelect = document.getElementById('staff-select');
+            staffSelect.addEventListener('change', (e) => {
+                const staffId = e.target.value ? parseInt(e.target.value) : null;
+                state.selection.staff = staffId ? mockApi.staff.find(s => s.id === staffId) : null;
+                if (state.selection.date) {
+                    renderTimeSlots(state.selection.date);
+                }
+            });
+
+            renderCalendar(state.today.year(), state.today.month());
+        }
+        
+        function renderCalendar(year, month) {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            const monthDate = dayjs().year(year).month(month);
+            const firstDayOfMonth = monthDate.startOf('month').day();
+            const daysInMonth = monthDate.daysInMonth();
+            
+            let calendarHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <button id="prev-month" class="p-1 rounded-full hover:bg-gray-600">&lt;</button>
+                    <span class="font-bold">${monthDate.format('MMMM YYYY')}</span>
+                    <button id="next-month" class="p-1 rounded-full hover:bg-gray-600">&gt;</button>
+                </div>
+                <div class="grid grid-cols-7 text-center text-xs text-gray-400 mb-1">
+                    <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+                </div>
+                <div class="grid grid-cols-7 gap-1">
+            `;
+            
+            // Blank days
+            for(let i = 0; i < firstDayOfMonth; i++) {
+                calendarHTML += `<div></div>`;
+            }
+
+            // Month days
+            for(let day = 1; day <= daysInMonth; day++) {
+                const currentDate = dayjs().year(year).month(month).date(day);
+                const isPast = currentDate.isBefore(state.today, 'day');
+                const isSelected = state.selection.date && currentDate.isSame(state.selection.date, 'day');
+                
+                let dayClasses = "date-cell w-8 h-8 flex items-center justify-center rounded-full cursor-pointer ";
+                if(isPast) {
+                    dayClasses += "text-gray-600 cursor-not-allowed";
+                } else {
+                    dayClasses += "hover:bg-indigo-500 ";
+                    if(isSelected) {
+                        dayClasses += "bg-indigo-600 text-white font-bold";
+                    }
+                }
+
+                calendarHTML += `<div class="${dayClasses}" data-date="${currentDate.format('YYYY-MM-DD')}">${day}</div>`;
+            }
+            
+            calendarHTML += '</div>';
+            calendarEl.innerHTML = calendarHTML;
+
+            // Event Listeners
+            document.getElementById('prev-month').addEventListener('click', () => renderCalendar(monthDate.subtract(1, 'month').year(), monthDate.subtract(1, 'month').month()));
+            document.getElementById('next-month').addEventListener('click', () => renderCalendar(monthDate.add(1, 'month').year(), monthDate.add(1, 'month').month()));
+
+            document.querySelectorAll('.date-cell').forEach(cell => {
+                if(!cell.classList.contains('cursor-not-allowed')) {
+                    cell.addEventListener('click', () => {
+                        state.selection.date = dayjs(cell.dataset.date);
+                        state.selection.time = null; // Reset time selection
+                        nextBtn.disabled = true;
+                        renderCalendar(year, month); // Re-render to show selection
+                        renderTimeSlots(state.selection.date);
+                    });
+                }
+            });
+        }
+        
+        function renderTimeSlots(date) {
+            const timeSlotsEl = document.getElementById('time-slots');
+            if(!timeSlotsEl) return;
+            
+            timeSlotsEl.innerHTML = '<div class="col-span-3 text-center p-4"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div></div>';
+            
+            setTimeout(() => { // Simulate API call
+                const serviceDuration = state.selection.service.duration;
+                const availableSlots = calculateAvailability(date, serviceDuration);
+                
+                if(availableSlots.length > 0) {
+                    timeSlotsEl.innerHTML = availableSlots.map(slot => {
+                        const isSelected = state.selection.time === slot;
+                        return `<div class="time-slot p-2 rounded-lg text-center cursor-pointer ${isSelected ? 'bg-indigo-600 text-white font-bold' : 'bg-gray-700 hover:bg-gray-600'}" data-time="${slot}">${slot}</div>`
+                    }).join('');
+                } else {
+                    timeSlotsEl.innerHTML = `<p class="text-gray-400 col-span-3 text-sm text-center py-4">Nenhum horário disponível para este dia.</p>`;
+                }
+
+                document.querySelectorAll('.time-slot').forEach(slot => {
+                    slot.addEventListener('click', () => {
+                        state.selection.time = slot.dataset.time;
+                        nextBtn.disabled = false;
+                        renderTimeSlots(date);
+                    });
+                });
+
+            }, 500);
+        }
+
+        function calculateAvailability(date, serviceDuration) {
+            const dayOfWeek = date.day();
+            const businessHours = mockApi.establishment.business_hours.find(h => h.day_of_week === dayOfWeek);
+
+            if (!businessHours || !businessHours.start_time) {
+                return []; // Closed day
+            }
+
+            const slots = [];
+            const establishmentTZ = mockApi.establishment.timezone;
+            let currentTime = date.startOf('day').hour(parseInt(businessHours.start_time.split(':')[0])).minute(parseInt(businessHours.start_time.split(':')[1]));
+            const endTime = date.startOf('day').hour(parseInt(businessHours.end_time.split(':')[0])).minute(parseInt(businessHours.end_time.split(':')[1]));
+            
+            const breakStart = businessHours.break_start ? date.startOf('day').hour(parseInt(businessHours.break_start.split(':')[0])).minute(parseInt(businessHours.break_start.split(':')[1])) : null;
+            const breakEnd = businessHours.break_end ? date.startOf('day').hour(parseInt(businessHours.break_end.split(':')[0])).minute(parseInt(businessHours.break_end.split(':')[1])) : null;
+            
+            const appointmentsForDay = mockApi.appointments.filter(app => {
+                const appDate = dayjs(app.start_time).tz(establishmentTZ);
+                return appDate.isSame(date, 'day') && (!state.selection.staff || app.staff_id === state.selection.staff.id);
+            });
+
+
+            while(currentTime.add(serviceDuration, 'minutes').isBefore(endTime) || currentTime.add(serviceDuration, 'minutes').isSame(endTime)) {
+                const slotEnd = currentTime.add(serviceDuration, 'minutes');
+                
+                let isAvailable = true;
+
+                // Check if slot is in the past
+                if(currentTime.isBefore(dayjs().tz(establishmentTZ))) {
+                    isAvailable = false;
+                }
+
+                // Check for break time collision
+                if (breakStart && breakEnd) {
+                    if ((currentTime.isBefore(breakEnd) && slotEnd.isAfter(breakStart))) {
+                        isAvailable = false;
+                    }
+                }
+
+                // Check for appointment collision
+                for (const app of appointmentsForDay) {
+                    const appStart = dayjs(app.start_time).tz(establishmentTZ);
+                    const appEnd = dayjs(app.end_time).tz(establishmentTZ);
+                    if ((currentTime.isBefore(appEnd) && slotEnd.isAfter(appStart))) {
+                        isAvailable = false;
+                        break;
+                    }
+                }
+
+                if (isAvailable) {
+                    slots.push(currentTime.format('HH:mm'));
+                }
+                
+                currentTime = currentTime.add(15, 'minutes'); // Check in 15-minute increments
+            }
+            return slots;
+        }
+
+        function renderClientForm() {
+            contentArea.innerHTML = `
+                <h3 class="text-xl font-semibold mb-4">Seus dados</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="client-name" class="block text-sm font-medium text-gray-300 mb-1">Nome Completo</label>
+                        <input type="text" id="client-name" value="${state.selection.client.name}" class="w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Seu nome">
+                    </div>
+                    <div>
+                        <label for="client-phone" class="block text-sm font-medium text-gray-300 mb-1">Telefone (WhatsApp)</label>
+                        <input type="tel" id="client-phone" value="${state.selection.client.phone}" class="w-full bg-gray-700 border-gray-600 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="(DD) 99999-9999" maxlength="15">
+                        <p class="text-xs text-gray-400 mt-1">Digite seu número com DDD</p>
+                    </div>
+                </div>
+            `;
+            const nameInput = document.getElementById('client-name');
+            const phoneInput = document.getElementById('client-phone');
+            
+            // Máscara de Telefone
+            phoneInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                
+                if (value.length > 2) {
+                    value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                }
+                if (value.length > 9) {
+                    value = `${value.slice(0, 10)}-${value.slice(10)}`;
+                }
+                e.target.value = value;
+                updateClientState();
+            });
+
+            const updateClientState = () => {
+                state.selection.client.name = nameInput.value;
+                state.selection.client.phone = phoneInput.value;
+                // Validação simples: nome preenchido e telefone com pelo menos 14 caracteres: (XX) XXXXX-XXXX
+                nextBtn.disabled = !state.selection.client.name || state.selection.client.phone.length < 14;
+            };
+
+            nameInput.addEventListener('input', updateClientState);
+            // phoneInput input event is handled above to include mask logic
+
+        }
+
+        function renderConfirmation() {
+            const { service, date, time, client, staff } = state.selection;
+            const fullDate = date.format('dddd, D [de] MMMM [de] YYYY');
+            const staffName = staff ? staff.name : 'Qualquer profissional';
+
+            contentArea.innerHTML = `
+                <h3 class="text-xl font-semibold mb-4 text-center">Confirme seu agendamento</h3>
+                <div class="bg-gray-700 p-6 rounded-lg space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Serviço:</span>
+                        <span class="font-semibold">${service.name}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Valor:</span>
+                        <span class="font-semibold">R$${service.price.toFixed(2).replace('.',',')}</span>
+                    </div>
+                     <div class="flex justify-between">
+                        <span class="text-gray-400">Profissional:</span>
+                        <span class="font-semibold">${staffName}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Data:</span>
+                        <span class="font-semibold">${fullDate}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Horário:</span>
+                        <span class="font-semibold">${time}</span>
+                    </div>
+                    <hr class="border-gray-600">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Nome:</span>
+                        <span class="font-semibold">${client.name}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Telefone:</span>
+                        <span class="font-semibold">${client.phone}</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-4 text-center">Uma mensagem de confirmação será enviada para o seu WhatsApp.</p>
+            `;
+        }
+        
+        function handleBookingSuccess() {
+            contentArea.innerHTML = `
+                <div class="text-center py-10">
+                    <svg class="w-16 h-16 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="text-2xl font-semibold text-white">Agendamento Enviado!</h3>
+                    <p class="text-gray-400 mt-2">Seu horário está pré-reservado. Por favor, verifique seu WhatsApp para confirmar o agendamento.</p>
+                    <p class="text-gray-400 mt-1">Obrigado por escolher a ${mockApi.establishment.name}!</p>
+                </div>
+            `;
+            document.getElementById('nav-buttons').innerHTML = `<button id="new-booking-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors mx-auto">Fazer Novo Agendamento</button>`;
+            document.getElementById('new-booking-btn').addEventListener('click', () => window.location.reload());
+        }
+
+        // --- EVENT HANDLERS ---
+        prevBtn.addEventListener('click', () => {
+            if (state.currentStep > 1) {
+                state.currentStep--;
+                if(state.currentStep === 3) nextBtn.textContent = 'Avançar'
+                renderStep();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (state.currentStep < 4) {
+                state.currentStep++;
+                renderStep();
+            } else {
+                // Final step: "Confirm Booking"
+                nextBtn.disabled = true;
+                nextBtn.innerHTML = `<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>`;
+                // Simulate API call to create appointment
+                setTimeout(() => {
+                    handleBookingSuccess();
+                }, 1500);
+            }
+        });
+
+        // --- INITIALIZATION ---
+        renderStep();
+    </script>
+</body>
+</html>
